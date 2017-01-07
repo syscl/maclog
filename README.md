@@ -14,6 +14,17 @@ How to use maclog?
 - Download binary exectuable program [here] (https://github.com/syscl/maclog/releases/download/v1.0/maclog-v1.0.zip)
 - Double left click to execute it(Note: for first time launch: ```Right Click``` ▶ ```Open```)
 
+If you want to compile it, following the below step:
+- Download the latest source code by entering the following command in a terminal window:
+```sh
+git clone https://github.com/syscl/maclog
+```
+- Build the project by typing:
+```sh
+cd maclog
+clang maclog.m -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
+```
+
 # Change Log
 2017-1-7
 
