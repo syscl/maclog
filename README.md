@@ -11,7 +11,7 @@ I wait for you. Wish you all enjoy this tiny but useful program.
 
 How to use maclog?
 ----------------
-- Download binary exectuable program [here] (https://github.com/syscl/maclog/releases/download/v1.0/maclog-v1.0.zip)
+- Download binary exectuable program [here] (https://github.com/syscl/maclog/files/691679/maclog-v1.1.zip)
 - Double left click to execute it(Note: for first time launch: ```Right Click``` ▶ ```Open```)
 
 If you want to compile it, following the below step:

@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 //
@@ -45,6 +43,7 @@ int main(int argc, char **argv)
         //
         // child process
         //
+        printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
         wait(NULL);
         gOpenf[0] = strdup("open");
         gOpenf[1] = strdup(gLogPath);
