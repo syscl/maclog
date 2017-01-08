@@ -11,7 +11,7 @@ I wait for you. Wish you all enjoy this tiny but useful program.
 
 How to use maclog?
 ----------------
-- Download binary exectuable program [here] (https://github.com/syscl/maclog/files/691679/maclog-v1.1.zip)
+- Download binary exectuable program [here] (https://github.com/syscl/maclog/files/692460/maclog-v1.2.zip)
 - Double left click to execute it(Note: for first time launch: ```Right Click``` ▶ ```Open```)
 
 If you want to compile it, following the below step:
@@ -26,6 +26,13 @@ clang maclog.m -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
 ```
 
 # Change Log
+2017-1-8
+
+- Release v1.2 binary exectuable program credit @schdt899 @smolderas @BreBo
+- Add *gCurTime(void)
+- Remove strdup(char *)
+- Optimize code 
+
 2017-1-7
 
 - Release v1.0 binary executable program
