@@ -19,6 +19,15 @@
 //
 #include "maclog.h"
 
+char *gCurTime(void)
+{
+    char *gTime = calloc(11, sizeof(char));
+    time_t gRawTime = time(NULL);
+    struct tm *gTimeInf = localtime(&gRawTime);
+    sprintf(gTime, "%d-%d-%d",gTimeInf->tm_year + 1900, gTimeInf->tm_mon + 1, gTimeInf->tm_mday);
+    return gTime;
+}
+
 int main(int argc, char **argv)
 {
     pid_t rc;
@@ -33,6 +42,7 @@ int main(int argc, char **argv)
             close(STDOUT_FILENO);
             dup2(fd, STDOUT_FILENO);
         }
+        gLogArgs[9] = gCurTime();
         //
         // log system log now
         //
@@ -45,8 +55,8 @@ int main(int argc, char **argv)
         //
         printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
         wait(NULL);
-        gOpenf[0] = strdup("open");
-        gOpenf[1] = strdup(gLogPath);
+        gOpenf[0] = "open";
+        gOpenf[1] = gLogPath;
         gOpenf[2] = NULL;
         execvp(gOpenf[0], gOpenf);
     }

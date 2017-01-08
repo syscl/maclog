@@ -1,5 +1,4 @@
 //
-//
 // maclog.h
 // maclog
 //
@@ -9,7 +8,7 @@
 // This work is licensed under the Creative Commons Attribution-NonCommercial
 // 4.0 Unported License => http://creativecommons.org/licenses/by-nc/4.0
 //
-#define PROGRAM_VER 1.1
+#define PROGRAM_VER 1.2
 
 #include <Carbon/Carbon.h>
 
@@ -18,6 +17,11 @@
 //
 #include <sys/stat.h>
 #include <fcntl.h>
+//
+// for time
+//
+#include <time.h>
+#include <string.h>
 
 //
 // file permission, we use 0644 for both convince and safety reason
@@ -27,11 +31,12 @@
 //
 // get default log name and path
 //
-const char* gLogPath  = "/tmp/system.log";
+char *gLogPath  = "/tmp/system.log";
 
 //
 // get log argv
 //
-char* gLogArgs[] = { "log", "show", "--predicate", "processID == 0", "--debug", 0 };
-char *gOpenf[3];
+//char* gLogArgs[] = { "log", "show", "--predicate", "processID == 0", "--debug", 0 };
+char* gLogArgs[] = { "log", "show", "--predicate", "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"", "--style", "syslog", "--source", "--info", "--start", NULL, NULL };
+char* gOpenf[3];
 
