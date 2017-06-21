@@ -29,6 +29,9 @@ char *gCurTime(void)
     return gTime;
 }
 
+//
+// Modified from https://stackoverflow.com/questions/3269321/osx-programmatically-get-uptime#answer-11676260
+//
 char *gBootTime(void)
 {
     struct timeval gBootTime;
