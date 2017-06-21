@@ -96,12 +96,12 @@ asl_object_t searchPowerManagerASLStore(const char *key, const char *value)
 
 char *gPowerManagerDomainTime(const char *domain)
 {
-    asl_object_t sleepMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
+    asl_object_t logMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
 
     // Get last message
     aslmsg next;
     aslmsg last = NULL;
-    while (NULL != (next = asl_next(sleepMessages))) last = next;
+    while (NULL != (next = asl_next(logMessages))) last = next;
 
     if (last == NULL) {
         printf("Failed to retrieve %s time.", domain);

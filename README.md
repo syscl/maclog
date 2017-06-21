@@ -29,7 +29,7 @@ Arguments
 ---------
 maclog default behaviour is to show all log messages of the current day.
 
-The following arguments modify this behavior to
+The following arguments modify this behavior:
 - `--boot`: Show log messages since last boot time.
 - `--sleep`: Show log messages since last sleep time.
 - `--wake`: Show log messages since last wake time.
