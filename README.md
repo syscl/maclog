@@ -27,12 +27,24 @@ clang maclog.m -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
 
 Arguments
 ---------
-maclog default behaviour is to log all messages of the current day.
+maclog default behaviour is to show all log messages of the current day.
 
-The following arguments are accepted:
-- `--boot`: Change default behaviour to only show log messages since last boot time.
+The following arguments modify this behavior to
+- `--boot`: Show log messages since last boot time.
+- `--sleep`: Show log messages since last sleep time.
+- `--wake`: Show log messages since last wake time.
+- `--darkWake`: Show log messages since last darkWake time.
+
+*note: The messages returned by `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*   
 
 # Change Log
+2017-6-21
+
+- Added `--sleep`, `--wake`, `--darkWake`  options
+- Added `char *gPowerManagerDomainTime(const char *domain)`
+- Added Power Management's ASL keys definitions
+- Changed error handling logic in `char *gBootTime(void)`
+
 2017-6-21
 
 - Bump version to v1.3 (c) @HeavenVolkoff 
@@ -40,7 +52,7 @@ The following arguments are accepted:
 2017-6-20
 
 - Added `--boot` option
-- Added `char *gCurTime(void)`
+- Added `char *gBootTime(void)`
 - Removed some unneeded headers
 
 2017-1-8

@@ -26,6 +26,21 @@
 //
 #include <time.h>
 #include <string.h>
+//
+// for access to old ASL logging system
+//
+#include <asl.h>
+
+//
+// Power Management's ASL keys
+// from: https://opensource.apple.com/source/PowerManagement/PowerManagement-637.50.9/common/CommonLib.h.auto.html
+// TODO: Find a way to include PowerManagement CommonLib.h, so we don't have to define this here.
+//
+#define kPMASLDomainKey "com.apple.iokit.domain"
+#define kPMASLStorePath "/var/log/powermanagement"
+#define kPMASLDomainPMWake "Wake"
+#define kPMASLDomainPMSleep "Sleep"
+#define kPMASLDomainPMDarkWake "DarkWake"
 
 //
 // file permission, we use 0644 for both convince and safety reason
@@ -35,12 +50,31 @@
 //
 // get default log name and path
 //
-char *gLogPath  = "/tmp/system.log";
+char *gLogPath = "/tmp/system.log";
 
 //
 // get log argv
 //
 //char* gLogArgs[] = { "log", "show", "--predicate", "processID == 0", "--debug", 0 };
-char* gLogArgs[] = { "log", "show", "--predicate", "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"", "--style", "syslog", "--source", "--info", "--start", NULL, NULL };
-char* gOpenf[3];
+char *gLogArgs[] = {
+        "log",
+        "show",
+        "--predicate",
+        "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"",
+        "--style",
+        "syslog",
+        "--source",
+        "--info",
+        "--start",
+        NULL,
+        NULL
+};
 
+//
+// Get open argv
+//
+char *gOpenf[3] = {
+        "open",
+        NULL,
+        NULL
+};
