@@ -5,7 +5,7 @@ macOS Sierra introduced a new mechanism for both application and system level lo
 Thus we can no longer get system.log from /var/log/system.log.
 Which made developer's debugging life further from innocence.
 That's why I started this project to just simply log all of system.log to console.
-More functions will be added later, if you have good idea for this project, don't hesitate to make a pull request for me :)
+More functionality will be added later, if you have a good idea for this project, don't hesitate to make a pull request for me :)
 
 I wait for you. Wish you all enjoy this tiny but useful program.
 
