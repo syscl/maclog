@@ -62,7 +62,7 @@ char *gBootTime(void)
 //
 // Modified from PowerManagement CommonLib.h `asl_object_t open_pm_asl_store()`
 // https://opensource.apple.com/source/PowerManagement/PowerManagement-637.50.9/common/CommonLib.h.auto.html
-// TODO: Sierra's PowerManager still uses the old ASL logging system, that' why we can do this.
+// TODO: Sierra's PowerManager still uses the old ASL logging system, that's why we can do this.
 // TODO: However I don't know if this will be the case on newer macOS versions.
 // TODO: It would be great if someone with High Sierra (10.13), could test this and check if it still works.
 //
