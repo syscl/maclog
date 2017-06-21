@@ -33,6 +33,10 @@ The following arguments are accepted:
 - `--boot`: Change default behaviour to only show log messages since last boot time.
 
 # Change Log
+2017-6-21
+
+- Bump version to v1.3 (c) @HeavenVolkoff 
+
 2017-6-20
 
 - Added `--boot` option
