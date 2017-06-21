@@ -44,10 +44,8 @@ The following arguments modify this behavior:
 - Added `char *gPowerManagerDomainTime(const char *domain)`
 - Added Power Management's ASL keys definitions
 - Changed error handling logic in `char *gBootTime(void)`
+- Bump version to v1.4 (c) @HeavenVolkoff 
 
-2017-6-21
-
-- Bump version to v1.3 (c) @HeavenVolkoff 
 
 2017-6-20
 

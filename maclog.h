@@ -8,7 +8,7 @@
 // This work is licensed under the Creative Commons Attribution-NonCommercial
 // 4.0 Unported License => http://creativecommons.org/licenses/by-nc/4.0
 //
-#define PROGRAM_VER 1.3
+#define PROGRAM_VER 1.4
 
 #include <Carbon/Carbon.h>
 
