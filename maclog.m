@@ -9,11 +9,6 @@
 // 4.0 Unported License => http://creativecommons.org/licenses/by-nc/4.0
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 //
 // syscl::header files
 //
@@ -24,7 +19,39 @@ char *gCurTime(void)
     char *gTime = calloc(11, sizeof(char));
     time_t gRawTime = time(NULL);
     struct tm *gTimeInf = localtime(&gRawTime);
-    sprintf(gTime, "%d-%d-%d",gTimeInf->tm_year + 1900, gTimeInf->tm_mon + 1, gTimeInf->tm_mday);
+    sprintf(
+        gTime,
+        "%d-%d-%d",
+        gTimeInf->tm_year + 1900,
+        gTimeInf->tm_mon + 1,
+        gTimeInf->tm_mday
+    );
+    return gTime;
+}
+
+//
+// Modified from https://stackoverflow.com/questions/3269321/osx-programmatically-get-uptime#answer-11676260
+//
+char *gBootTime(void)
+{
+    struct timeval gBootTime;
+
+    size_t len = sizeof(gBootTime);
+    int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+    if(sysctl(mib, 2, &gBootTime, &len, NULL, 0) < 0) return gCurTime();
+
+    char *gTime = calloc(20, sizeof(char));
+    struct tm *gTimeInf = localtime(&gBootTime.tv_sec);
+    sprintf(
+        gTime,
+        "%d-%d-%d %d:%d:%d",
+        gTimeInf->tm_year + 1900,
+        gTimeInf->tm_mon + 1,
+        gTimeInf->tm_mday,
+        gTimeInf->tm_hour,
+        gTimeInf->tm_min,
+        gTimeInf->tm_sec
+    );
     return gTime;
 }
 
@@ -42,7 +69,11 @@ int main(int argc, char **argv)
             close(STDOUT_FILENO);
             dup2(fd, STDOUT_FILENO);
         }
-        gLogArgs[9] = gCurTime();
+
+        gLogArgs[9] = argc > 1 && (strcmp(argv[1], "--boot") == 0)
+            ? gBootTime()
+            : gCurTime();
+
         //
         // log system log now
         //
@@ -68,6 +99,6 @@ int main(int argc, char **argv)
         printf("Fork failed\n");
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }

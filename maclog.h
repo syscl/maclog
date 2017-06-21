@@ -15,8 +15,12 @@
 //
 // for open(...)
 //
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+//
+// for sysctl(...)
+//
+#include <sys/sysctl.h>
 //
 // for time
 //
