@@ -69,26 +69,27 @@ char *gBootTime(void)
 asl_object_t searchPowerManagerASLStore(const char *key, const char *value)
 {
     size_t endMessageID;
-    asl_object_t query = asl_new(ASL_TYPE_LIST);
+    asl_object_t list = asl_new(ASL_TYPE_LIST);
     asl_object_t response = NULL;
 
-    if (query != NULL)
+    if (list != NULL)
     {
-        asl_object_t cq = asl_new(ASL_TYPE_QUERY);
-        if (cq != NULL)
+        asl_object_t query = asl_new(ASL_TYPE_QUERY);
+        if (query != NULL)
         {
-            if (asl_set_query(cq, key, value, ASL_QUERY_OP_EQUAL) == 0)
+            if (asl_set_query(query, key, value, ASL_QUERY_OP_EQUAL) == 0)
             {
-                asl_append(query, cq);
+                asl_append(list, query);
                 asl_object_t pmStore = asl_open_path(kPMASLStorePath, 0);
-                if (pmStore != NULL) {
-                    response = asl_match(pmStore, query, &endMessageID, 0, 0, 0, ASL_MATCH_DIRECTION_FORWARD);
+                if (pmStore != NULL)
+                {
+                    response = asl_match(pmStore, list, &endMessageID, 0, 0, 0, ASL_MATCH_DIRECTION_FORWARD);
                 }
                 asl_release(pmStore);
             }
-            asl_release(cq);
+            asl_release(query);
         }
-        asl_release(query);
+        asl_release(list);
     }
 
     return response;
