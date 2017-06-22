@@ -43,6 +43,12 @@
 #define kPMASLDomainPMDarkWake    "DarkWake"
 
 //
+// flags for different log argv
+//
+#define showLogArgv 0
+#define streamLogArgv 1
+
+//
 // file permission, we use 0644 for both convince and safety reason
 //
 #define PERMS 0644
@@ -50,31 +56,30 @@
 //
 // get default log name and path
 //
-char *gLogPath = "/tmp/system.log";
+#define gLogPath "/tmp/system.log"
 
 //
 // get log argv
 //
-//char* gLogArgs[] = { "log", "show", "--predicate", "processID == 0", "--debug", 0 };
 char *gLogArgs[] = {
         "log",
-        "show",
+        NULL,
         "--predicate",
         "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"",
         "--style",
         "syslog",
         "--source",
-        "--info",
-        "--start",
+        NULL,
+        NULL,
         NULL,
         NULL
 };
 
 //
-// Get open argv
+// get open argv
 //
-char *gOpenf[3] = {
+char *gOpenf[] = {
         "open",
-        NULL,
+        gLogPath,
         NULL
 };

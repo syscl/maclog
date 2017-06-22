@@ -69,26 +69,27 @@ char *gBootTime(void)
 asl_object_t searchPowerManagerASLStore(const char *key, const char *value)
 {
     size_t endMessageID;
-    asl_object_t query = asl_new(ASL_TYPE_LIST);
+    asl_object_t list = asl_new(ASL_TYPE_LIST);
     asl_object_t response = NULL;
 
-    if (query != NULL)
+    if (list != NULL)
     {
-        asl_object_t cq = asl_new(ASL_TYPE_QUERY);
-        if (cq != NULL)
+        asl_object_t query = asl_new(ASL_TYPE_QUERY);
+        if (query != NULL)
         {
-            if (asl_set_query(cq, key, value, ASL_QUERY_OP_EQUAL) == 0)
+            if (asl_set_query(query, key, value, ASL_QUERY_OP_EQUAL) == 0)
             {
-                asl_append(query, cq);
+                asl_append(list, query);
                 asl_object_t pmStore = asl_open_path(kPMASLStorePath, 0);
-                if (pmStore != NULL) {
-                    response = asl_match(pmStore, query, &endMessageID, 0, 0, 0, ASL_MATCH_DIRECTION_FORWARD);
+                if (pmStore != NULL)
+                {
+                    response = asl_match(pmStore, list, &endMessageID, 0, 0, 0, ASL_MATCH_DIRECTION_FORWARD);
                 }
                 asl_release(pmStore);
             }
-            asl_release(cq);
+            asl_release(query);
         }
-        asl_release(query);
+        asl_release(list);
     }
 
     return response;
@@ -96,12 +97,11 @@ asl_object_t searchPowerManagerASLStore(const char *key, const char *value)
 
 char *gPowerManagerDomainTime(const char *domain)
 {
-    asl_object_t sleepMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
+    asl_object_t logMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
 
     // Get last message
-    aslmsg next;
-    aslmsg last = NULL;
-    while (NULL != (next = asl_next(sleepMessages))) last = next;
+    asl_reset_iteration(logMessages, SIZE_MAX);
+    aslmsg last = asl_prev(logMessages);
 
     if (last == NULL) {
         printf("Failed to retrieve %s time.", domain);
@@ -125,6 +125,24 @@ char *gPowerManagerDomainTime(const char *domain)
     return gTime;
 }
 
+void prepareLogArgv(int type) {
+    switch (type) {
+        case showLogArgv:
+            gLogArgs[1] = "show";
+            gLogArgs[7] = "--info";
+            gLogArgs[8] = "--start";
+            break;
+        case streamLogArgv:
+            gLogArgs[1] = "stream";
+            gLogArgs[7] = "--level";
+            gLogArgs[8] = "info";
+            break;
+        default:
+            printf("Failed to retrieve logs.");
+            exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char **argv)
 {
     pid_t rc;
@@ -136,8 +154,10 @@ int main(int argc, char **argv)
         int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
         if (fd >= 0)
         {
-            close(STDOUT_FILENO);
-            dup2(fd, STDOUT_FILENO);
+            if (dup2(fd, STDOUT_FILENO) < 0) {
+                printf("Failed to retrieve logs.");
+                exit(EXIT_FAILURE);
+            }
         }
 
         //
@@ -145,30 +165,37 @@ int main(int argc, char **argv)
         //
         if (argc > 1)
         {
-            if (strcmp(argv[1], "--boot") == 0 || strcmp(argv[1], "-b") == 0)
-            {
-                gLogArgs[9] = gBootTime();
-            }
-            else if (strcmp(argv[1], "--sleep") == 0 || strcmp(argv[1], "-s") == 0)
-            {
-                gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
-            }
-            else if (strcmp(argv[1], "--wake") == 0 || strcmp(argv[1], "-w") == 0)
-            {
-                gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMWake);
-            }
-            else if (strcmp(argv[1], "--darkWake") == 0 || strcmp(argv[1], "-d") == 0)
-            {
-                gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
-            }
-            else
-            {
-                printf("Invalid argument.");
-                return EXIT_FAILURE;
+            // TODO: What would be a good shorthand for this? Considering -s is already --sleep.
+            if (strcmp(argv[1], "--stream") == 0) {
+                prepareLogArgv(streamLogArgv);
+            } else {
+                prepareLogArgv(showLogArgv);
+                if (strcmp(argv[1], "--boot") == 0 || strcmp(argv[1], "-b") == 0)
+                {
+                    gLogArgs[9] = gBootTime();
+                }
+                else if (strcmp(argv[1], "--sleep") == 0 || strcmp(argv[1], "-s") == 0)
+                {
+                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
+                }
+                else if (strcmp(argv[1], "--wake") == 0 || strcmp(argv[1], "-w") == 0)
+                {
+                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMWake);
+                }
+                else if (strcmp(argv[1], "--darkWake") == 0 || strcmp(argv[1], "-d") == 0)
+                {
+                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
+                }
+                else
+                {
+                    printf("Invalid argument.");
+                    return EXIT_FAILURE;
+                }
             }
         }
         else
         {
+            prepareLogArgv(showLogArgv);
             gLogArgs[9] = gCurTime();
         }
 
@@ -184,7 +211,6 @@ int main(int argc, char **argv)
         //
         printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
         wait(NULL);
-        gOpenf[1] = gLogPath;
         execvp(gOpenf[0], gOpenf);
     }
     else
