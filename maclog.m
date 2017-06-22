@@ -145,19 +145,19 @@ int main(int argc, char **argv)
         //
         if (argc > 1)
         {
-            if (strcmp(argv[1], "--boot") == 0 || strcmp(argv[1], "--b") == 0)
+            if (strcmp(argv[1], "--boot") == 0 || strcmp(argv[1], "-b") == 0)
             {
                 gLogArgs[9] = gBootTime();
             }
-            else if (strcmp(argv[1], "--sleep") == 0 || strcmp(argv[1], "--s") == 0)
+            else if (strcmp(argv[1], "--sleep") == 0 || strcmp(argv[1], "-s") == 0)
             {
                 gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
             }
-            else if (strcmp(argv[1], "--wake") == 0 || strcmp(argv[1], "--w") == 0)
+            else if (strcmp(argv[1], "--wake") == 0 || strcmp(argv[1], "-w") == 0)
             {
                 gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMWake);
             }
-            else if (strcmp(argv[1], "--darkWake") == 0 || strcmp(argv[1], "--d") == 0)
+            else if (strcmp(argv[1], "--darkWake") == 0 || strcmp(argv[1], "-d") == 0)
             {
                 gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
             }
