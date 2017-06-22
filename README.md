@@ -34,10 +34,19 @@ The following arguments modify this behavior:
 - `--sleep`: Show log messages since last sleep time.
 - `--wake`: Show log messages since last wake time.
 - `--darkWake`: Show log messages since last darkWake time.
+- `--stream`: Show log messages in real time.
 
-*note: The messages returned by `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*   
+*note: The messages returned by `--boot`, `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*
+
+*note: The `--stream` option result in the maclog process never finishing, due the necessity of redirecting all logs to Console in real-time.*
+ 
 
 # Change Log
+2017-6-22
+- Added `--stream` option
+- Added .xcodeproj file
+- Some code improvements
+
 2017-6-21
 
 - Added `--sleep`, `--wake`, `--darkWake`  options
