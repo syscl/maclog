@@ -100,9 +100,8 @@ char *gPowerManagerDomainTime(const char *domain)
     asl_object_t logMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
 
     // Get last message
-    aslmsg next;
-    aslmsg last = NULL;
-    while (NULL != (next = asl_next(logMessages))) last = next;
+    asl_reset_iteration(logMessages, SIZE_MAX);
+    aslmsg last = asl_prev(logMessages);
 
     if (last == NULL) {
         printf("Failed to retrieve %s time.", domain);
