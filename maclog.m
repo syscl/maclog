@@ -40,7 +40,7 @@ char *gBootTime(void)
     int mib[2] = {CTL_KERN, KERN_BOOTTIME};
     if (sysctl(mib, 2, &gBootTime, &len, NULL, 0) < 0)
     {
-        printf("Failed to retrieve boot time.");
+        printf("Failed to retrieve boot time.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -104,7 +104,7 @@ char *gPowerManagerDomainTime(const char *domain)
     aslmsg last = asl_prev(logMessages);
 
     if (last == NULL) {
-        printf("Failed to retrieve %s time.", domain);
+        printf("Failed to retrieve %s time.\n", domain);
         exit(EXIT_FAILURE);
     }
 
@@ -138,7 +138,7 @@ void prepareLogArgv(int type) {
             gLogArgs[8] = "info";
             break;
         default:
-            printf("Failed to retrieve logs.");
+            printf("Failed to retrieve logs.\n");
             exit(EXIT_FAILURE);
     }
 }
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
         if (fd >= 0)
         {
             if (dup2(fd, STDOUT_FILENO) < 0) {
-                printf("Failed to retrieve logs.");
+                printf("Failed to retrieve logs.\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    printf("Invalid argument.");
+                    printf("Invalid argument.\n");
                     return EXIT_FAILURE;
                 }
             }
