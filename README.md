@@ -35,13 +35,22 @@ The following arguments modify this behavior:
 - `--wake`: Show log messages since last wake time.
 - `--darkWake`: Show log messages since last darkWake time.
 - `--stream`: Show log messages in real time.
+- `--filter <query>`: Filter log messages by `<query>`
 
 *note: The messages returned by `--boot`, `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*
 
-*note: The `--stream` option result in the maclog process never finishing, due the necessity of redirecting all logs to Console in real-time.*
+*note: The `--stream` option result in the maclog process being never finished, due to the necessity of redirecting all logs to Console in real-time.*
+
+*note: The `--filter` option can be used with any other above arguments. This can be handy for sorting out certain logs.*
  
 
 # Change Log
+2017-7-17
+- Added `--filter` option
+- Added help in case of providing an invalid argument
+- Code improvements
+- Bump version to v1.6 (c) @MuntashirAkon 
+
 2017-6-22
 - Added `--stream` option
 - Added .xcodeproj file

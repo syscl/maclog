@@ -8,7 +8,7 @@
 // This work is licensed under the Creative Commons Attribution-NonCommercial
 // 4.0 Unported License => http://creativecommons.org/licenses/by-nc/4.0
 //
-#define PROGRAM_VER 1.5
+#define PROGRAM_VER 1.6
 
 #include <Carbon/Carbon.h>
 
@@ -59,13 +59,21 @@
 #define gLogPath "/tmp/system.log"
 
 //
+// constants for gLogArgs, for mkaing them easy to change and increase readability
+//
+#define gLogCommand 1
+#define gLogTime    9
+#define gLogFilter  3
+
+
+//
 // get log argv
 //
 char *gLogArgs[] = {
         "log",
         NULL,
         "--predicate",
-        "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"",
+        NULL,
         "--style",
         "syslog",
         "--source",
