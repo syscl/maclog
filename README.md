@@ -45,11 +45,15 @@ The following arguments modify this behavior:
  
 
 # Change Log
+2017-7-18
+- Better parsing of command line arguments
+- Fixed sizeof filter bug
+- Bump version to v1.6 (c) @MuntashirAkon @HeavenVolkoff 
+
 2017-7-17
 - Added `--filter` option
 - Added help in case of providing an invalid argument
-- Code improvements
-- Bump version to v1.6 (c) @MuntashirAkon 
+- Code improvements 
 
 2017-6-22
 - Added `--stream` option
