@@ -188,7 +188,7 @@ int main(int argc, char **argv)
                 }
 
                 filterFlag = 1;
-                gLogArgs[gLogFilter] = calloc(sizeof(predicate filterConcat) + strlen(optarg) + 1, sizeof(char));
+                gLogArgs[gLogFilter] = calloc(sizeof(predicate filterConcat) + strlen(optarg), sizeof(char));
                 sprintf(gLogArgs[gLogFilter], predicate filterConcat "%s", optarg);
                 break;
             case 'h':
