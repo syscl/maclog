@@ -14,55 +14,23 @@
 //
 #include "maclog.h"
 
-char *gCurTime(void)
-{
-    time_t gRawTime = time(NULL);
-    struct tm *gTimeInf = localtime(&gRawTime);
-    char *gTime = calloc(11, sizeof(char));
-    if (gTime != NULL)
-    {
-        sprintf(
-                gTime,
-                "%d-%d-%d",
-                gTimeInf->tm_year + 1900,
-                gTimeInf->tm_mon + 1,
-                gTimeInf->tm_mday
-        );
-    }
-    return gTime;
-}
-
 //
-// Modified from https://stackoverflow.com/questions/3269321/osx-programmatically-get-uptime#answer-11676260
+// Generate time string
 //
-char *gBootTime(void)
-{
-    struct timeval gBootTime;
+char *gTimeStr (size_t size, const char *fmt, ...) {
+    char *str = calloc(size, sizeof(char));
+    if (str == NULL) return NULL;
 
-    size_t len = sizeof(gBootTime);
-    int mib[2] = {CTL_KERN, KERN_BOOTTIME};
-    if (sysctl(mib, 2, &gBootTime, &len, NULL, 0) < 0)
-    {
-        printf("Failed to retrieve boot time.\n");
-        exit(EXIT_FAILURE);
+    va_list args;
+    va_start(args, fmt);
+    size_t printedChars = vsnprintf(str, size, fmt, args);
+    if (printedChars <= 0 || printedChars >= size) {
+        free(str);
+        str = NULL;
     }
+    va_end(args);
 
-    char *gTime = calloc(20, sizeof(char));
-    struct tm *gTimeInf = localtime(&gBootTime.tv_sec);
-    if (gTime != NULL)
-    {
-        sprintf(
-                gTime,
-                "%d-%d-%d %d:%d:%d",
-                gTimeInf->tm_year + 1900,
-                gTimeInf->tm_mon + 1,
-                gTimeInf->tm_mday,
-                gTimeInf->tm_hour,
-                gTimeInf->tm_min,
-                gTimeInf->tm_sec
-        );
-    }
-    return gTime;
+    return str;
 }
 
 //
@@ -101,6 +69,40 @@ asl_object_t searchPowerManagerASLStore(const char *key, const char *value)
     return response;
 }
 
+//
+// get current time
+//
+char *gCurTime(void)
+{
+    time_t gRawTime = time(NULL);
+    struct tm *gTimeInf = localtime(&gRawTime);
+    return gTimeStr(11, "%d-%d-%d", gTimeInf->tm_year + 1900, gTimeInf->tm_mon + 1, gTimeInf->tm_mday);
+}
+
+//
+// Modified from https://stackoverflow.com/questions/3269321/osx-programmatically-get-uptime#answer-11676260
+// get machine's lat boot time
+//
+char *gBootTime(void)
+{
+    struct timeval gBootTime;
+    size_t len = sizeof(gBootTime);
+    int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+    if (sysctl(mib, 2, &gBootTime, &len, NULL, 0) < 0) return NULL;
+    struct tm *gTimeInf = localtime(&gBootTime.tv_sec);
+    return gTimeStr(20, "%d-%d-%d %d:%d:%d",
+            gTimeInf->tm_year + 1900,
+            gTimeInf->tm_mon + 1,
+            gTimeInf->tm_mday,
+            gTimeInf->tm_hour,
+            gTimeInf->tm_min,
+            gTimeInf->tm_sec
+    );
+}
+
+//
+// get time of last powerManagement domain event
+//
 char *gPowerManagerDomainTime(const char *domain)
 {
     asl_object_t logMessages = searchPowerManagerASLStore(kPMASLDomainKey, domain);
@@ -110,32 +112,20 @@ char *gPowerManagerDomainTime(const char *domain)
     aslmsg last = asl_prev(logMessages);
     asl_release(logMessages);
 
-    if (last == NULL)
-    {
-        printf("Failed to retrieve %s time.\n", domain);
-        exit(EXIT_FAILURE);
-    }
+    if (last == NULL) return NULL;
 
     long gMessageTime = atol(asl_get(last, ASL_KEY_TIME));
     struct tm *gTimeInf = localtime(&gMessageTime);
     asl_release(last);
 
-    char *gTime = calloc(20, sizeof(char));
-
-    if (gTime != NULL)
-    {
-        sprintf(
-                gTime,
-                "%d-%d-%d %d:%d:%d",
-                gTimeInf->tm_year + 1900,
-                gTimeInf->tm_mon + 1,
-                gTimeInf->tm_mday,
-                gTimeInf->tm_hour,
-                gTimeInf->tm_min,
-                gTimeInf->tm_sec
-        );
-    }
-    return gTime;
+    return gTimeStr(20, "%d-%d-%d %d:%d:%d",
+            gTimeInf->tm_year + 1900,
+            gTimeInf->tm_mon + 1,
+            gTimeInf->tm_mday,
+            gTimeInf->tm_hour,
+            gTimeInf->tm_min,
+            gTimeInf->tm_sec
+    );
 }
 
 void printHelpAndExit (int exitStatus)
@@ -162,9 +152,54 @@ void printHelpAndExit (int exitStatus)
     exit(exitStatus);
 }
 
-void signalHandler(int signo)
+int killProcess (pid_t pid, ppath_t ppath, int signal) {
+    if (kill(pid, 0) == 0) {
+        ppath_t checkProcessPath = {0};
+        if (proc_pidpath(pid, checkProcessPath, sizeof(ppath_t)) > 0 &&
+            strcmp(ppath, checkProcessPath) == 0)
+        {
+            kill(pid, signal);
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+void signalHandler(int sig, siginfo_t *info, void *ucontext)
 {
-    if (signo == SIGUSR1 && access(gLogPath, F_OK) == 0) execvp(gOpenf[0], gOpenf);
+    int exitCode = EXIT_FAILURE;
+    if (sig == SIGUSR1)
+    {
+        sleep(1);
+        pid_t pid = fork();
+        pid_t logPid = info->si_pid;
+        ppath_t ppath = {0};
+        if (kill(logPid, 0) == 0 && proc_pidpath(logPid, ppath, sizeof(ppath_t)) > 0)
+        {
+            if (pid == 0)
+            {
+                // Child process will continue and wait till console is closed so it can cleanup any remaining process
+                int consoleProcessId;
+                if (access(gLogPath, F_OK) == 0 &&
+                    posix_spawn(&consoleProcessId, gOpenf[0], NULL, NULL, gOpenf, environ) == 0 &&
+                    waitpid(consoleProcessId, NULL, 0) != -1)
+                {
+                    exitCode = EXIT_SUCCESS;
+                }
+            }
+            else if (pid > 0)
+            {
+                // Parent process should exit to release shell
+                exit(EXIT_SUCCESS);
+            }
+        }
+
+        killProcess(logPid, ppath, SIGINT);
+        unlink(gLogPath);
+    }
+
+    exit(exitCode);
 }
 
 int main(int argc, char **argv)
@@ -208,28 +243,22 @@ int main(int argc, char **argv)
 
                     sprintf(gLogArgs[gLogFilter], predicate filterConcat "%s", optarg);
                     break;
-                case 'h':
-                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
-                    printHelpAndExit(EXIT_SUCCESS);
                 case 'v':
                     if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
                     printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
                     exit(EXIT_SUCCESS);
-                case '?':
-                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
-                    printHelpAndExit(EXIT_FAILURE);
                 default:
-                    if (mode)
+                    if (mode == 0)
                     {
-                        // Cleanup
-                        if (filterFlag) free(gLogArgs[gLogFilter]);
-                        // Log error
-                        printf("ERROR: Different modes can't be mixed.\n");
-                        printHelpAndExit(EXIT_FAILURE);
+                        mode = currentOption;
+                        break;
                     }
 
-                    mode = currentOption;
-                    break;
+                    // Log error
+                    printf("ERROR: Different modes can't be mixed.\n");
+                case 'h': case '?':
+                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
+                    printHelpAndExit(EXIT_FAILURE);
             }
 
             currentOption = getopt_long(argc, argv, shortOptions, longOptions, &optionIndex);
@@ -267,12 +296,6 @@ int main(int argc, char **argv)
                 case 'w':
                     gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMWake);
                     break;
-                default:
-                    // Cleanup
-                    if (filterFlag) free(gLogArgs[gLogFilter]);
-                    // Log error
-                    printf("ERROR: Invalid mode: %c\n", mode);
-                    printHelpAndExit(EXIT_FAILURE);
             }
 
             if (gLogArgs[gLogTime] == NULL)
@@ -280,7 +303,10 @@ int main(int argc, char **argv)
                 // Cleanup
                 if (filterFlag) free(gLogArgs[gLogFilter]);
                 // Log error
-                printf("ERROR: Failed to retrieve requested mode logs");
+                printf(
+                    "ERROR: Failed to retrieve log for requested mode: %c, Check `--help` to see if it is supported\n",
+                    mode
+                );
                 exit(EXIT_FAILURE);
             }
         }
@@ -291,47 +317,24 @@ int main(int argc, char **argv)
         int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
 
         //
-        // redirect output to log file
+        // get parent process id
         //
-        if (fd < 0 || close(STDOUT_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0)
-        {
-            // Cleanup
-            if (filterFlag) free(gLogArgs[gLogFilter]);
-            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
-            free(gLogArgs[gLogTime]);
-            // Log error
-            printf("ERROR: Failed to redirect logs.\n");
-            exit(EXIT_FAILURE);
-        }
+        pid_t ppid = getppid();
 
-        //
-        // signal parent to open console
-        //
-        int ppid = getppid();
-        if (ppid == 1 || kill(ppid, SIGUSR1) < 0)
+        if (fd < 0 ||
+            ppid == 1 ||
+            close(STDOUT_FILENO) < 0 ||
+            dup2(fd, STDOUT_FILENO) < 0 || // redirect output to log file
+            kill(ppid, SIGUSR1) < 0 || // signal parent to open Console.app
+            execvp(gLogArgs[0], gLogArgs) < 0) // call system log
         {
             // Cleanup
-            if (filterFlag) free(gLogArgs[gLogFilter]);
-            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
+            unlink(gLogPath);
             free(gLogArgs[gLogTime]);
-            // Log error
-            printf("ERROR: Failed to signal parent.\n");
-            exit(EXIT_FAILURE);
-        }
-
-        //
-        // call system log
-        //
-        if (execvp(gLogArgs[0], gLogArgs) < 0)
-        {
-            // Cleanup
             if (filterFlag) free(gLogArgs[gLogFilter]);
-            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
-            free(gLogArgs[gLogTime]);
             // Log error
             printf("ERROR: Failed to redirect logs.\n");
             // Close parent
-            kill(SIGINT, ppid);
             exit(EXIT_FAILURE);
         }
     }
@@ -344,7 +347,11 @@ int main(int argc, char **argv)
         //
         // register signal handler
         //
-        if (signal(SIGUSR1, signalHandler) == SIG_ERR) {
+        struct sigaction act = {
+                .sa_sigaction = signalHandler,
+                .sa_flags = SA_SIGINFO
+        };
+        if (sigemptyset (&act.sa_mask) < 0 || sigaction (SIGUSR1, &act, NULL) < 0) {
             printf("ERROR: Parent process can't register signal handler\n");
             exit(EXIT_FAILURE);
         }

@@ -35,6 +35,17 @@
 // more info: http://man7.org/linux/man-pages/man3/getopt.3.html
 //
 #include <getopt.h>
+//
+// for posix_spawn(...)
+//
+#include <spawn.h>
+//
+// for proc_pidpath(...)
+//
+#include <libproc.h>
+
+extern char **environ;
+typedef char ppath_t[PROC_PIDPATHINFO_MAXSIZE];
 
 //
 // Power Management's ASL keys
@@ -90,7 +101,7 @@ struct option longOptions[] = {
 // get log argv
 //
 char *gLogArgs[] = {
-        "log",
+        "/usr/bin/log",
         NULL,
         "--predicate",
         predicate,
@@ -107,7 +118,10 @@ char *gLogArgs[] = {
 // get open argv
 //
 char *gOpenf[] = {
-        "open",
+        "/usr/bin/open",
+        "-W",
+        "-a",
+        "Console.app",
         gLogPath,
         NULL
 };
