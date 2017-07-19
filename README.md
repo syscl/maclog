@@ -39,13 +39,15 @@ The following arguments modify this behavior:
 
 *note: The messages returned by `--boot`, `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*
 
-*note: The `--stream` option result in the maclog process being never finished, due to the necessity of redirecting all logs to Console in real-time.*
-
 *note: The `--filter` option can be used with any other above arguments. This can be handy for sorting out certain logs.*
  
 
 # Change Log
 2017-7-18
+- Better error handling
+- Better memory management
+- `--stream` no longer hangs process
+- Code improvements
 - Better parsing of command line arguments
 - Fixed sizeof filter bug
 - Bump version to v1.6 (c) @MuntashirAkon @HeavenVolkoff 

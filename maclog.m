@@ -16,16 +16,19 @@
 
 char *gCurTime(void)
 {
-    char *gTime = calloc(11, sizeof(char));
     time_t gRawTime = time(NULL);
     struct tm *gTimeInf = localtime(&gRawTime);
-    sprintf(
-            gTime,
-            "%d-%d-%d",
-            gTimeInf->tm_year + 1900,
-            gTimeInf->tm_mon + 1,
-            gTimeInf->tm_mday
-    );
+    char *gTime = calloc(11, sizeof(char));
+    if (gTime != NULL)
+    {
+        sprintf(
+                gTime,
+                "%d-%d-%d",
+                gTimeInf->tm_year + 1900,
+                gTimeInf->tm_mon + 1,
+                gTimeInf->tm_mday
+        );
+    }
     return gTime;
 }
 
@@ -46,16 +49,19 @@ char *gBootTime(void)
 
     char *gTime = calloc(20, sizeof(char));
     struct tm *gTimeInf = localtime(&gBootTime.tv_sec);
-    sprintf(
-            gTime,
-            "%d-%d-%d %d:%d:%d",
-            gTimeInf->tm_year + 1900,
-            gTimeInf->tm_mon + 1,
-            gTimeInf->tm_mday,
-            gTimeInf->tm_hour,
-            gTimeInf->tm_min,
-            gTimeInf->tm_sec
-    );
+    if (gTime != NULL)
+    {
+        sprintf(
+                gTime,
+                "%d-%d-%d %d:%d:%d",
+                gTimeInf->tm_year + 1900,
+                gTimeInf->tm_mon + 1,
+                gTimeInf->tm_mday,
+                gTimeInf->tm_hour,
+                gTimeInf->tm_min,
+                gTimeInf->tm_sec
+        );
+    }
     return gTime;
 }
 
@@ -102,48 +108,38 @@ char *gPowerManagerDomainTime(const char *domain)
     // Get last message
     asl_reset_iteration(logMessages, SIZE_MAX);
     aslmsg last = asl_prev(logMessages);
+    asl_release(logMessages);
 
-    if (last == NULL) {
+    if (last == NULL)
+    {
         printf("Failed to retrieve %s time.\n", domain);
         exit(EXIT_FAILURE);
     }
 
     long gMessageTime = atol(asl_get(last, ASL_KEY_TIME));
     struct tm *gTimeInf = localtime(&gMessageTime);
+    asl_release(last);
 
     char *gTime = calloc(20, sizeof(char));
-    sprintf(
-            gTime,
-            "%d-%d-%d %d:%d:%d",
-            gTimeInf->tm_year + 1900,
-            gTimeInf->tm_mon + 1,
-            gTimeInf->tm_mday,
-            gTimeInf->tm_hour,
-            gTimeInf->tm_min,
-            gTimeInf->tm_sec
-    );
+
+    if (gTime != NULL)
+    {
+        sprintf(
+                gTime,
+                "%d-%d-%d %d:%d:%d",
+                gTimeInf->tm_year + 1900,
+                gTimeInf->tm_mon + 1,
+                gTimeInf->tm_mday,
+                gTimeInf->tm_hour,
+                gTimeInf->tm_min,
+                gTimeInf->tm_sec
+        );
+    }
     return gTime;
 }
 
-void prepareLogArgv(int type) {
-    switch (type) {
-        case showLogArgv:
-            gLogArgs[gLogCommand] = "show";
-            gLogArgs[7] = "--info";
-            gLogArgs[8] = "--start";
-            break;
-        case streamLogArgv:
-            gLogArgs[gLogCommand] = "stream";
-            gLogArgs[7] = "--level";
-            gLogArgs[8] = "info";
-            break;
-        default:
-            printf("Failed to retrieve logs.\n");
-            exit(EXIT_FAILURE);
-    }
-}
-
-void printHelpAndExit (int exitStatus) {
+void printHelpAndExit (int exitStatus)
+{
     printf(
             "USAGE: maclog [--version|-v] [--help|-h]\n"
             "USAGE: maclog [logMode] [-f|--filter=<query>]\n"
@@ -162,120 +158,205 @@ void printHelpAndExit (int exitStatus) {
             "NOTE: The messages returned by \e[1m--boot\e[0m, \e[1m--sleep\e[0m, "
             "\e[1m--wake\e[0m, \e[1m--darkWake\e[0m can be from previous days,"
             " depending on the last time each action occurred.\n"
-            "NOTE: The \e[1m--stream\e[0m option results in the maclog process being never finished,"
-            " due to the necessity of redirecting all logs to Console in real-time.\n"
     );
     exit(exitStatus);
 }
 
+void signalHandler(int signo)
+{
+    if (signo == SIGUSR1 && access(gLogPath, F_OK) == 0) execvp(gOpenf[0], gOpenf);
+}
+
 int main(int argc, char **argv)
 {
-    int mode = 0;
-    int filterFlag = 0;
-    int optionIndex = 0;
-    int currentOption = getopt_long (argc, argv, shortOptions, longOptions, &optionIndex);
-
-    //
-    // Handle arguments
-    //
-    while (currentOption != -1)
-    {
-        switch (currentOption) {
-            case 'f':
-                if (filterFlag) {
-                    printf("ERROR: Filter argument should only appear once.\n");
-                    exit(EXIT_FAILURE);
-                }
-
-                filterFlag = 1;
-                gLogArgs[gLogFilter] = calloc(sizeof(predicate filterConcat) + strlen(optarg), sizeof(char));
-                sprintf(gLogArgs[gLogFilter], predicate filterConcat "%s", optarg);
-                break;
-            case 'h':
-                printHelpAndExit(EXIT_SUCCESS);
-            case 'v':
-                printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
-                exit(EXIT_SUCCESS);
-            case '?':
-                printHelpAndExit(EXIT_FAILURE);
-            default:
-                if (mode) {
-                    printf("ERROR: Different modes can't be mixed.\n");
-                    printHelpAndExit(EXIT_FAILURE);
-                }
-
-                mode = currentOption;
-                break;
-        }
-
-        currentOption = getopt_long (argc, argv, shortOptions, longOptions, &optionIndex);
-    }
-
-    pid_t rc;
-    if ((rc = fork()) > 0)
+    pid_t pid = fork();
+    if (pid == 0)
     {
         //
-        // parent process
+        // child process
         //
-        
-        //
-        // create the log file
-        //
-        int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
-
-        switch (mode) {
-            case 0:
-                prepareLogArgv(showLogArgv);
-                gLogArgs[gLogTime] = gCurTime();
-                break;
-            case 'b':
-                prepareLogArgv(showLogArgv);
-                gLogArgs[gLogTime] = gBootTime();
-                break;
-            case 'd':
-                prepareLogArgv(showLogArgv);
-                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
-                break;
-            case 's':
-                prepareLogArgv(showLogArgv);
-                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
-                break;
-            case 'S':
-                prepareLogArgv(streamLogArgv);
-                break;
-            case 'w':
-                prepareLogArgv(showLogArgv);
-                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMWake);
-                break;
-            default:
-                if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
-                printf("ERROR: Invalid mode: %c\n", mode);
-                printHelpAndExit(EXIT_FAILURE);
-        }
+        int mode = 0;
+        int filterFlag = 0;
+        int optionIndex = 0;
+        int currentOption = getopt_long(argc, argv, shortOptions, longOptions, &optionIndex);
 
         //
-        // log the log file
+        // Handle arguments
         //
-        if (fd >= 0)
+        while (currentOption != -1)
         {
-            if (dup2(fd, STDOUT_FILENO) < 0) {
-                printf("ERROR: Failed to retrieve logs.\n");
+            switch (currentOption)
+            {
+                case 'f':
+                    if (filterFlag)
+                    {
+                        // Cleanup
+                        free(gLogArgs[gLogFilter]);
+                        // Log error
+                        printf("ERROR: Filter argument should only appear once.\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    filterFlag = 1;
+                    gLogArgs[gLogFilter] = calloc(sizeof(predicate filterConcat) + strlen(optarg), sizeof(char));
+                    if (gLogArgs[gLogFilter] == NULL)
+                    {
+                        // Log error
+                        printf("ERROR: Failed to allocate memory.\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    sprintf(gLogArgs[gLogFilter], predicate filterConcat "%s", optarg);
+                    break;
+                case 'h':
+                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
+                    printHelpAndExit(EXIT_SUCCESS);
+                case 'v':
+                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
+                    printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
+                    exit(EXIT_SUCCESS);
+                case '?':
+                    if (filterFlag) free(gLogArgs[gLogFilter]); // Cleanup
+                    printHelpAndExit(EXIT_FAILURE);
+                default:
+                    if (mode)
+                    {
+                        // Cleanup
+                        if (filterFlag) free(gLogArgs[gLogFilter]);
+                        // Log error
+                        printf("ERROR: Different modes can't be mixed.\n");
+                        printHelpAndExit(EXIT_FAILURE);
+                    }
+
+                    mode = currentOption;
+                    break;
+            }
+
+            currentOption = getopt_long(argc, argv, shortOptions, longOptions, &optionIndex);
+        }
+
+        //
+        // Handle modes
+        //
+        if (mode == 'S') // Stream mode
+        {
+            gLogArgs[gLogCommand] = "stream";
+            gLogArgs[7] = "--level";
+            gLogArgs[8] = "info";
+        }
+        else // Normal modes
+        {
+            gLogArgs[gLogCommand] = "show";
+            gLogArgs[7] = "--info";
+            gLogArgs[8] = "--start";
+
+            switch (mode)
+            {
+                case 0:
+                    gLogArgs[gLogTime] = gCurTime();
+                    break;
+                case 'b':
+                    gLogArgs[gLogTime] = gBootTime();
+                    break;
+                case 'd':
+                    gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
+                    break;
+                case 's':
+                    gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
+                    break;
+                case 'w':
+                    gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMWake);
+                    break;
+                default:
+                    // Cleanup
+                    if (filterFlag) free(gLogArgs[gLogFilter]);
+                    // Log error
+                    printf("ERROR: Invalid mode: %c\n", mode);
+                    printHelpAndExit(EXIT_FAILURE);
+            }
+
+            if (gLogArgs[gLogTime] == NULL)
+            {
+                // Cleanup
+                if (filterFlag) free(gLogArgs[gLogFilter]);
+                // Log error
+                printf("ERROR: Failed to retrieve requested mode logs");
                 exit(EXIT_FAILURE);
             }
         }
 
         //
-        // log system log now
+        // create the log file
         //
-        execvp(gLogArgs[0], gLogArgs);
+        int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
+
+        //
+        // redirect output to log file
+        //
+        if (fd < 0 || close(STDOUT_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0)
+        {
+            // Cleanup
+            if (filterFlag) free(gLogArgs[gLogFilter]);
+            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
+            free(gLogArgs[gLogTime]);
+            // Log error
+            printf("ERROR: Failed to redirect logs.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //
+        // signal parent to open console
+        //
+        int ppid = getppid();
+        if (ppid == 1 || kill(ppid, SIGUSR1) < 0)
+        {
+            // Cleanup
+            if (filterFlag) free(gLogArgs[gLogFilter]);
+            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
+            free(gLogArgs[gLogTime]);
+            // Log error
+            printf("ERROR: Failed to signal parent.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //
+        // call system log
+        //
+        if (execvp(gLogArgs[0], gLogArgs) < 0)
+        {
+            // Cleanup
+            if (filterFlag) free(gLogArgs[gLogFilter]);
+            if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
+            free(gLogArgs[gLogTime]);
+            // Log error
+            printf("ERROR: Failed to redirect logs.\n");
+            // Close parent
+            kill(SIGINT, ppid);
+            exit(EXIT_FAILURE);
+        }
     }
-    else if (rc == 0)
+    else if (pid > 0)
     {
         //
-        // child process
+        // parent process
         //
-        wait(NULL);
-        if(access(gLogPath, F_OK) == 0) execvp(gOpenf[0], gOpenf);
+
+        //
+        // register signal handler
+        //
+        if (signal(SIGUSR1, signalHandler) == SIG_ERR) {
+            printf("ERROR: Parent process can't register signal handler\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //
+        // wait children in case something goes wrong
+        //
+        int status;
+        if (waitpid(pid, &status, 0) == -1 || WIFEXITED(status) == 0 || WEXITSTATUS(status) != EXIT_SUCCESS)
+        {
+            exit(EXIT_FAILURE);
+        }
     }
     else
     {
