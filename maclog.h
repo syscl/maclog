@@ -48,12 +48,6 @@
 #define kPMASLDomainPMDarkWake    "DarkWake"
 
 //
-// flags for different log argv
-//
-#define showLogArgv 0
-#define streamLogArgv 1
-
-//
 // file permission, we use 0644 for both convince and safety reason
 //
 #define PERMS 0644
