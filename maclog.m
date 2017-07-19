@@ -179,7 +179,7 @@ void signalHandler(int sig, siginfo_t *info, void *ucontext)
         {
             if (pid == 0)
             {
-                // Child process will continue and wait till console is closed so it can cleanup any remaining process
+                // Child process will continue and wait till Console.app is closed so it can cleanup any remaining process
                 int consoleProcessId;
                 if (access(gLogPath, F_OK) == 0 &&
                     posix_spawn(&consoleProcessId, gOpenf[0], NULL, NULL, gOpenf, environ) == 0 &&
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 
             switch (mode)
             {
-                case 0:
+                case 0: // default, no argument received
                     gLogArgs[gLogTime] = gCurTime();
                     break;
                 case 'b':

@@ -43,6 +43,12 @@ The following arguments modify this behavior:
  
 
 # Change Log
+2017-7-19
+- Fixed bug in stream mode that resulted in system log process never being killed
+- Better process management
+- Delete /tmp/system.log on exit
+- Code improvements
+
 2017-7-18
 - Better error handling
 - Better memory management
