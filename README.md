@@ -44,6 +44,8 @@ The following arguments modify this behavior:
 
 # Change Log
 2017-7-19
+- Prevents multiple instances of `maclog` from altering the same file
+- Open a new instance of Console.app for each `maclog` execution
 - Fixed bug in stream mode that resulted in system log process never being killed
 - Better process management
 - Delete /tmp/system.log on exit

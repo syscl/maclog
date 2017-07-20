@@ -314,22 +314,29 @@ int main(int argc, char **argv)
         //
         // create the log file
         //
-        int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
+        int fd = open(gLogPath, O_CREAT | O_WRONLY, PERMS);
 
         //
         // get parent process id
         //
         pid_t ppid = getppid();
 
-        if (fd < 0 ||
-            ppid == 1 ||
-            close(STDOUT_FILENO) < 0 ||
+        //
+        // lock access to file
+        //
+        int lock = flock(fd, LOCK_EX | LOCK_NB);
+
+        if (fd < 0 || // Check if we received the file descriptor
+            ppid == 1 || // Check if parent is still alive
+            lock < 0 || // Check if we can lock file, if not another maclog process is running
+            ftruncate(fd, 0) < 0 || // Truncate file
+            close(STDOUT_FILENO) < 0 || // This seems to be required
             dup2(fd, STDOUT_FILENO) < 0 || // redirect output to log file
             kill(ppid, SIGUSR1) < 0 || // signal parent to open Console.app
             execvp(gLogArgs[0], gLogArgs) < 0) // call system log
         {
             // Cleanup
-            unlink(gLogPath);
+            if (lock == 0) unlink(gLogPath);
             free(gLogArgs[gLogTime]);
             if (filterFlag) free(gLogArgs[gLogFilter]);
             // Log error

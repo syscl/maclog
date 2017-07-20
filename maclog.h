@@ -120,6 +120,7 @@ char *gLogArgs[] = {
 char *gOpenf[] = {
         "/usr/bin/open",
         "-W",
+        "-n",
         "-a",
         "Console.app",
         gLogPath,
