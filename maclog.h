@@ -8,7 +8,7 @@
 // This work is licensed under the Creative Commons Attribution-NonCommercial
 // 4.0 Unported License => http://creativecommons.org/licenses/by-nc/4.0
 //
-#define PROGRAM_VER 1.5
+#define PROGRAM_VER 1.6
 
 #include <Carbon/Carbon.h>
 
@@ -22,7 +22,7 @@
 //
 #include <sys/sysctl.h>
 //
-// for time
+// for time(...)
 //
 #include <time.h>
 #include <string.h>
@@ -30,6 +30,11 @@
 // for access to old ASL logging system
 //
 #include <asl.h>
+//
+// for getopt_long(...)
+// more info: http://man7.org/linux/man-pages/man3/getopt.3.html
+//
+#include <getopt.h>
 
 //
 // Power Management's ASL keys
@@ -59,13 +64,42 @@
 #define gLogPath "/tmp/system.log"
 
 //
+// argument flags
+//
+#define shortOptions "bdf:hsSvw"
+struct option longOptions[] = {
+    {"boot",        no_argument,        NULL,   'b'},
+    {"darkWake",    no_argument,        NULL,   'd'},
+    {"filter",      required_argument,  NULL,   'f'},
+    {"help",        no_argument,        NULL,   'h'},
+    {"sleep",       no_argument,        NULL,   's'},
+    {"stream",      no_argument,        NULL,   'S'},
+    {"version",     no_argument,        NULL,   'v'},
+    {"wake",        no_argument,        NULL,   'w'},
+    {0,             0,                  0,       0 },
+};
+
+//
+// constants for gLogArgs, for making them easy to change and increase readability
+//
+#define gLogCommand 1
+#define gLogTime    9
+#define gLogFilter  3
+
+//
+// filter
+//
+#define predicate "(process == \"kernel\" OR eventMessage CONTAINS[c] \"kernel\")"
+#define filterConcat " AND "
+
+//
 // get log argv
 //
 char *gLogArgs[] = {
         "log",
         NULL,
         "--predicate",
-        "process == \"kernel\" OR eventMessage CONTAINS \"kernel\"",
+        predicate,
         "--style",
         "syslog",
         "--source",

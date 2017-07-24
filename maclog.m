@@ -128,12 +128,12 @@ char *gPowerManagerDomainTime(const char *domain)
 void prepareLogArgv(int type) {
     switch (type) {
         case showLogArgv:
-            gLogArgs[1] = "show";
+            gLogArgs[gLogCommand] = "show";
             gLogArgs[7] = "--info";
             gLogArgs[8] = "--start";
             break;
         case streamLogArgv:
-            gLogArgs[1] = "stream";
+            gLogArgs[gLogCommand] = "stream";
             gLogArgs[7] = "--level";
             gLogArgs[8] = "info";
             break;
@@ -143,60 +143,125 @@ void prepareLogArgv(int type) {
     }
 }
 
+void printHelpAndExit (int exitStatus) {
+    printf(
+            "USAGE: maclog [--version|-v] [--help|-h]\n"
+            "USAGE: maclog [logMode] [-f|--filter=<query>]\n"
+            "Arguments:\n"
+            " --help,     -h  Show maclog help info.\n"
+            " --version,  -v  Show maclog version info.\n"
+            "Log Modes:\n"
+            " --boot,     -b  Show log messages since last boot time.\n"
+            " --darkWake, -d  Show log messages since last darkWake time.\n"
+            " --sleep,    -s  Show log messages since last sleep time.\n"
+            " --stream,   -S  Show log messages in real time.\n"
+            " --wake,     -w  Show log messages since last wake time.\n"
+            "Filter:\n"
+            " --filter,   -f  Show log messages filtered by the <query>.\n"
+            "NOTE: The default behaviour is to show all log messages of the current day.\n"
+            "NOTE: The messages returned by \e[1m--boot\e[0m, \e[1m--sleep\e[0m, "
+            "\e[1m--wake\e[0m, \e[1m--darkWake\e[0m can be from previous days,"
+            " depending on the last time each action occurred.\n"
+            "NOTE: The \e[1m--stream\e[0m option results in the maclog process being never finished,"
+            " due to the necessity of redirecting all logs to Console in real-time.\n"
+    );
+    exit(exitStatus);
+}
+
 int main(int argc, char **argv)
 {
+    int mode = 0;
+    int filterFlag = 0;
+    int optionIndex = 0;
+    int currentOption = getopt_long (argc, argv, shortOptions, longOptions, &optionIndex);
+
+    //
+    // Handle arguments
+    //
+    while (currentOption != -1)
+    {
+        switch (currentOption) {
+            case 'f':
+                if (filterFlag) {
+                    printf("ERROR: Filter argument should only appear once.\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                filterFlag = 1;
+                gLogArgs[gLogFilter] = calloc(sizeof(predicate filterConcat) + strlen(optarg), sizeof(char));
+                sprintf(gLogArgs[gLogFilter], predicate filterConcat "%s", optarg);
+                break;
+            case 'h':
+                printHelpAndExit(EXIT_SUCCESS);
+            case 'v':
+                printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
+                exit(EXIT_SUCCESS);
+            case '?':
+                printHelpAndExit(EXIT_FAILURE);
+            default:
+                if (mode) {
+                    printf("ERROR: Different modes can't be mixed.\n");
+                    printHelpAndExit(EXIT_FAILURE);
+                }
+
+                mode = currentOption;
+                break;
+        }
+
+        currentOption = getopt_long (argc, argv, shortOptions, longOptions, &optionIndex);
+    }
+
     pid_t rc;
     if ((rc = fork()) > 0)
     {
         //
-        // parent process, log the file
+        // parent process
+        //
+        
+        //
+        // create the log file
         //
         int fd = open(gLogPath, O_CREAT | O_TRUNC | O_RDWR, PERMS);
-        if (fd >= 0)
-        {
-            if (dup2(fd, STDOUT_FILENO) < 0) {
-                printf("Failed to retrieve logs.\n");
-                exit(EXIT_FAILURE);
-            }
+
+        switch (mode) {
+            case 0:
+                prepareLogArgv(showLogArgv);
+                gLogArgs[gLogTime] = gCurTime();
+                break;
+            case 'b':
+                prepareLogArgv(showLogArgv);
+                gLogArgs[gLogTime] = gBootTime();
+                break;
+            case 'd':
+                prepareLogArgv(showLogArgv);
+                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
+                break;
+            case 's':
+                prepareLogArgv(showLogArgv);
+                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
+                break;
+            case 'S':
+                prepareLogArgv(streamLogArgv);
+                break;
+            case 'w':
+                prepareLogArgv(showLogArgv);
+                gLogArgs[gLogTime] = gPowerManagerDomainTime(kPMASLDomainPMWake);
+                break;
+            default:
+                if(access(gLogPath, F_OK) == 0) unlink(gLogPath);
+                printf("ERROR: Invalid mode: %c\n", mode);
+                printHelpAndExit(EXIT_FAILURE);
         }
 
         //
-        // Handle arguments
+        // log the log file
         //
-        if (argc > 1)
+        if (fd >= 0)
         {
-            // TODO: What would be a good shorthand for this? Considering -s is already --sleep.
-            if (strcmp(argv[1], "--stream") == 0) {
-                prepareLogArgv(streamLogArgv);
-            } else {
-                prepareLogArgv(showLogArgv);
-                if (strcmp(argv[1], "--boot") == 0 || strcmp(argv[1], "-b") == 0)
-                {
-                    gLogArgs[9] = gBootTime();
-                }
-                else if (strcmp(argv[1], "--sleep") == 0 || strcmp(argv[1], "-s") == 0)
-                {
-                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMSleep);
-                }
-                else if (strcmp(argv[1], "--wake") == 0 || strcmp(argv[1], "-w") == 0)
-                {
-                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMWake);
-                }
-                else if (strcmp(argv[1], "--darkWake") == 0 || strcmp(argv[1], "-d") == 0)
-                {
-                    gLogArgs[9] = gPowerManagerDomainTime(kPMASLDomainPMDarkWake);
-                }
-                else
-                {
-                    printf("Invalid argument.\n");
-                    return EXIT_FAILURE;
-                }
+            if (dup2(fd, STDOUT_FILENO) < 0) {
+                printf("ERROR: Failed to retrieve logs.\n");
+                exit(EXIT_FAILURE);
             }
-        }
-        else
-        {
-            prepareLogArgv(showLogArgv);
-            gLogArgs[9] = gCurTime();
         }
 
         //
@@ -209,16 +274,15 @@ int main(int argc, char **argv)
         //
         // child process
         //
-        printf("v%.1f (c) 2017 syscl/lighting/Yating Zhou\n", PROGRAM_VER);
         wait(NULL);
-        execvp(gOpenf[0], gOpenf);
+        if(access(gLogPath, F_OK) == 0) execvp(gOpenf[0], gOpenf);
     }
     else
     {
         //
         // fork failed
         //
-        printf("Fork failed\n");
+        printf("ERROR: Fork failed\n");
         return EXIT_FAILURE;
     }
 
