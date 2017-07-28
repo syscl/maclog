@@ -1,5 +1,9 @@
-Get system log from macOS(10.12+) much easier
-============
+Maclog
+======
+
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+> Get system log from macOS much easier for debugging
 
 macOS Sierra introduced a new mechanism for both application and system level logging.
 Thus we can no longer get system.log from /var/log/system.log.
@@ -9,53 +13,73 @@ More functionality will be added later, if you have a good idea for this project
 
 I wait for you. Wish you all enjoy this tiny but useful program.
 
-How to use maclog?
-----------------
+Install
+-------
 - Download binary executable program [here](https://github.com/syscl/maclog/files/692460/maclog-v1.2.zip).
 - Double left click to execute it (Note: for first time launch: ```Right Click ▶ Open```)
 
-If you want to compile it, following the below step:
-- Download the latest source code by entering the following command in a terminal window:
+If you want to compile it, follow these step in a terminal window:
+- Download the latest source code by entering the following command:
 ```sh
 git clone https://github.com/syscl/maclog
 ```
-- Build the project by typing:
+- Change to project directory:
 ```sh
 cd maclog
+```
+- Build the project by typing:
+```sh
 clang maclog.m -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
 ```
+- Or if you have Xcode installed:
+```sh
+xcodebuild
+```
 
-Arguments
----------
-maclog default behaviour is to show all log messages of the current day.
+Usage
+-----
+### CLI
+```
+USAGE: maclog [--version|-v] [--help|-h]
+USAGE: maclog [log mode] [filter]
+```
 
-The following arguments modify this behavior:
-- `--boot`: Show log messages since last boot time.
-- `--sleep`: Show log messages since last sleep time.
-- `--wake`: Show log messages since last wake time.
-- `--darkWake`: Show log messages since last darkWake time.
-- `--stream`: Show log messages in real time.
-- `--filter <query>`: Filter log messages by `<query>`
+#### Arguments:
+  - `--help`, `-h`: Show maclog help info.
+  - `--version`, `-v`: Show maclog version info.
+  - Log Modes:
+    - `--boot`, `-b`: Show log messages since last boot time.
+    - `--darkWake`, `-d`: Show log messages since last darkWake time.
+    - `--sleep`, `-s`: Show log messages since last sleep time.
+    - `--stream`, `-S`: Show log messages in real time.
+    - `--wake`, `-w`: Show log messages since last wake time.
+  - Filter:
+    - `--filter`, `-f`: Show log messages filtered by the <query>.
+    - `--filterMessage`, `-F`: Shorthand for `-f "eventMessage CONTAINS[c] <query>"`
 
-*note: The messages returned by `--boot`, `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*
+*__NOTE__: The default behaviour is to show all log messages of the current day.*
 
-*note: The `--filter` option can be used with any other above arguments. This can be handy for sorting out certain logs.*
- 
+*__NOTE__: The messages returned by `--boot`, `--sleep`, `--wake`, `--darkWake` can be from previous days, depending on the last time each action occurred.*
 
-# Change Log
+*__NOTE__: The `--filter` option can be used with any other above arguments. This can be handy for sorting out certain logs.*
+
+Change Log
+----------
+2017-7-27
+- Code organization overhaul
+- Added `--filterMessage` option 
+- Added License file
+- Cleaner process management
+
 2017-7-19
-- Prevents multiple instances of `maclog` from altering the same file
-- Open a new instance of Console.app for each `maclog` execution
-- Fixed bug in stream mode that resulted in system log process never being killed
-- Better process management
-- Delete /tmp/system.log on exit
-- Code improvements
-
-2017-7-18
 - Better error handling
 - Better memory management
-- `--stream` no longer hangs process
-- Code improvements
+- No longer hangs process on `--stream` mode 
+- Open a new instance of Console.app for each `maclog` execution
+- Prevents multiple instances of `maclog` from executing and altering the same file
+- Delete /tmp/system.log on exit
+
+2017-7-18
 - Better parsing of command line arguments
 - Fixed sizeof filter bug
 - Bump version to v1.6 (c) @MuntashirAkon @HeavenVolkoff 
@@ -96,3 +120,6 @@ The following arguments modify this behavior:
 
 - Release v1.0 binary executable program
 - Release source code
+
+## License
+[CC BY-NC 4.0 © syscl.](../LICENSE.md)
