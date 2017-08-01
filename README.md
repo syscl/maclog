@@ -29,7 +29,7 @@ cd maclog
 ```
 - Build the project by typing:
 ```sh
-clang maclog.m -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
+clang src/*.c -Os -Iinclude -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
 ```
 - Or if you have Xcode installed:
 ```sh
