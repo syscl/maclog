@@ -19,14 +19,14 @@
 //
 // Helper function for filter arguments
 //
-static int filterHelper (const char *fmt, const char *filter)
+static inline int filterHelper (size_t size, const char *fmt, const char *filter)
 {
     static int flag = 1;
 
     if (flag)
     {
         flag = 0;
-        logArgs[gLogFilter] = gString(strlen(fmt) - 2 + strlen(filter) + 1, fmt, filter);
+        logArgs[gLogFilter] = gString(size, fmt, filter);
         if (logArgs[gLogFilter] != NULL)
         {
             return 0;
@@ -69,10 +69,20 @@ int parseArguments (int argc, char * argv[]) {
                 printf(HELP_MESSAGE);
                 return 1;
             case 'f':
-                if (filterHelper(predicate filterConcat "%s", optarg) == -1) return -1;
+                if (filterHelper(
+                        sizeof(predicate filterConcat) + strlen(optarg), predicate filterConcat "%s", optarg
+                    ) == -1)
+                {
+                    return -1;
+                }
                 break;
             case 'F':
-                if (filterHelper(predicate filterMessage "\"%s\"", optarg) == -1) return -1;
+                if (filterHelper(
+                        sizeof(predicate filterMessage) + strlen(optarg) + 2, predicate filterMessage "\"%s\"", optarg
+                    ) == -1)
+                {
+                    return -1;
+                }
                 break;
             default:
                 if (mode == 0)
@@ -97,7 +107,7 @@ int parseArguments (int argc, char * argv[]) {
     //
     // Handle default filter
     //
-    if (logArgs[gLogFilter] == NULL) if (filterHelper(predicate, "") == -1) return -1;
+    if (logArgs[gLogFilter] == NULL) if (filterHelper(sizeof(predicate), predicate, NULL) == -1) return -1;
 
     //
     // Handle modes
