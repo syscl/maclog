@@ -1,5 +1,5 @@
 //
-//  maclog.h
+//  gLogTime.h
 //  maclog
 //
 //  Created by lighting on 1/7/17.
