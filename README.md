@@ -27,7 +27,7 @@ git clone https://github.com/syscl/maclog
 ```sh
 cd maclog
 ```
-- Build the project by typing:
+- Build the project:
 ```sh
 clang src/*.c -Os -Iinclude -fobjc-arc -fmodules -mmacosx-version-min=10.6 -o maclog
 ```
@@ -65,6 +65,11 @@ USAGE: maclog [log mode] [filter]
 
 Change Log
 ----------
+2017-8-1
+- Fixes filter's "Failed to allocate memory" bug on default mode
+- Fixed clang build command
+- Bump version to v1.7 (c) @HeavenVolkoff
+
 2017-7-27
 - Code organization overhaul
 - Added `--filterMessage` option 
@@ -122,4 +127,6 @@ Change Log
 - Release source code
 
 ## License
-[CC BY-NC 4.0 © syscl.](../LICENSE.md)
+[![Creative Commons Licence](https://i.creativecommons.org/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+Maclog by [syscl](https://github.com/syscl/maclog) is licensed under a [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).

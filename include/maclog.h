@@ -28,7 +28,7 @@
 //
 // Maclog version and info
 //
-#define PROGRAM_VERSION 1.6
+#define PROGRAM_VERSION 1.7
 #define VERSION_INFO "v" TO_STRING(PROGRAM_VERSION) " (c) 2017 syscl/lighting/Yating Zhou\n"
 #define HELP_MESSAGE                                                                \
     "USAGE: maclog [--version|-v] [--help|-h]\n"                                    \
