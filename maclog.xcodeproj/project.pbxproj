@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5927B7B51D1EEF9985B9A752 /* maclog.m in Sources */ = {isa = PBXBuildFile; fileRef = 5927B9AA8739D02C89B48ABD /* maclog.m */; };
+		CDFAF5691F2AA78700C45D8E /* arguments.c in Sources */ = {isa = PBXBuildFile; fileRef = CDFAF5651F2AA77B00C45D8E /* arguments.c */; };
+		CDFAF56A1F2AA78700C45D8E /* global.c in Sources */ = {isa = PBXBuildFile; fileRef = CDFAF5661F2AA77B00C45D8E /* global.c */; };
+		CDFAF56B1F2AA78700C45D8E /* gLogTime.c in Sources */ = {isa = PBXBuildFile; fileRef = CDFAF5671F2AA77B00C45D8E /* gLogTime.c */; };
+		CDFAF56C1F2AA78700C45D8E /* maclog.c in Sources */ = {isa = PBXBuildFile; fileRef = CDFAF5681F2AA77B00C45D8E /* maclog.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,11 +26,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5927B0F3929046F1C87CF8C4 /* maclog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = maclog.h; sourceTree = "<group>"; };
+		5927B5104DBA82F2A06FF32B /* LICENSE.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		5927B84A191AB4DEC37C25FB /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		5927B9AA8739D02C89B48ABD /* maclog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = maclog.m; sourceTree = "<group>"; };
 		5927BA9915C9C46A9F8C75E1 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = file.gitignore; path = .gitignore; sourceTree = "<group>"; };
-		CD197BB31EFB4FDA00CC69F2 /* maclog */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = maclog; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDFAF5601F2AA77B00C45D8E /* arguments.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arguments.h; sourceTree = "<group>"; };
+		CDFAF5611F2AA77B00C45D8E /* gLogTime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gLogTime.h; sourceTree = "<group>"; };
+		CDFAF5621F2AA77B00C45D8E /* helper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = helper.h; sourceTree = "<group>"; };
+		CDFAF5631F2AA77B00C45D8E /* maclog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = maclog.h; sourceTree = "<group>"; };
+		CDFAF5651F2AA77B00C45D8E /* arguments.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arguments.c; sourceTree = "<group>"; };
+		CDFAF5661F2AA77B00C45D8E /* global.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = global.c; sourceTree = "<group>"; };
+		CDFAF5671F2AA77B00C45D8E /* gLogTime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gLogTime.c; sourceTree = "<group>"; };
+		CDFAF5681F2AA77B00C45D8E /* maclog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = maclog.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,20 +53,34 @@
 		CD197BAA1EFB4FDA00CC69F2 = {
 			isa = PBXGroup;
 			children = (
-				CD197BB41EFB4FDA00CC69F2 /* Products */,
-				5927B0F3929046F1C87CF8C4 /* maclog.h */,
-				5927B9AA8739D02C89B48ABD /* maclog.m */,
+				CDFAF55F1F2AA77B00C45D8E /* include */,
+				CDFAF5641F2AA77B00C45D8E /* src */,
 				5927BA9915C9C46A9F8C75E1 /* .gitignore */,
 				5927B84A191AB4DEC37C25FB /* README.md */,
+				5927B5104DBA82F2A06FF32B /* LICENSE.md */,
 			);
 			sourceTree = "<group>";
 		};
-		CD197BB41EFB4FDA00CC69F2 /* Products */ = {
+		CDFAF55F1F2AA77B00C45D8E /* include */ = {
 			isa = PBXGroup;
 			children = (
-				CD197BB31EFB4FDA00CC69F2 /* maclog */,
+				CDFAF5601F2AA77B00C45D8E /* arguments.h */,
+				CDFAF5611F2AA77B00C45D8E /* gLogTime.h */,
+				CDFAF5621F2AA77B00C45D8E /* helper.h */,
+				CDFAF5631F2AA77B00C45D8E /* maclog.h */,
 			);
-			name = Products;
+			path = include;
+			sourceTree = "<group>";
+		};
+		CDFAF5641F2AA77B00C45D8E /* src */ = {
+			isa = PBXGroup;
+			children = (
+				CDFAF5651F2AA77B00C45D8E /* arguments.c */,
+				CDFAF5661F2AA77B00C45D8E /* global.c */,
+				CDFAF5671F2AA77B00C45D8E /* gLogTime.c */,
+				CDFAF5681F2AA77B00C45D8E /* maclog.c */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -77,7 +100,6 @@
 			);
 			name = maclog;
 			productName = maclog;
-			productReference = CD197BB31EFB4FDA00CC69F2 /* maclog */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -103,7 +125,6 @@
 				en,
 			);
 			mainGroup = CD197BAA1EFB4FDA00CC69F2;
-			productRefGroup = CD197BB41EFB4FDA00CC69F2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -117,7 +138,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5927B7B51D1EEF9985B9A752 /* maclog.m in Sources */,
+				CDFAF5691F2AA78700C45D8E /* arguments.c in Sources */,
+				CDFAF56A1F2AA78700C45D8E /* global.c in Sources */,
+				CDFAF56B1F2AA78700C45D8E /* gLogTime.c in Sources */,
+				CDFAF56C1F2AA78700C45D8E /* maclog.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,16 +240,22 @@
 		CD197BBB1EFB4FDA00CC69F2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
 		CD197BBC1EFB4FDA00CC69F2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
